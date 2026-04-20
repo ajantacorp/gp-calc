@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shopee Fee Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf7f5;
+  --surface: #ffffff;
+  --border: #e8e0db;
+  --shopee: #ee4d2d;
+  --shopee-bg: #fff5f2;
+  --shopee-border: #f5c4b8;
+  --direct: #0d9e6e;
+  --direct-bg: #f0faf6;
+  --direct-border: #a8e0cb;
+  --text: #1a1210;
+  --muted: #8a7e79;
+  --danger: #dc2626;
+  --green: #15803d;
+  --warn: #b45309;
+  --warn-bg: #fffbeb;
+  --warn-border: #f0d68a;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'Sarabun', sans-serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; padding-bottom: 60px; }
+
+/* HEADER */
+.header {
+  background: linear-gradient(135deg, #fff5f2 0%, #faf7f5 70%);
+  border-bottom: 1px solid var(--border);
+  padding: 16px; position: sticky; top: 0; z-index: 100;
+}
+.header-inner { max-width: 920px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+.logo { width: 34px; height: 34px; background: var(--shopee); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.header h1 { font-size: 15px; font-weight: 700; }
+.header p { font-size: 11px; color: var(--muted); }
+
+/* MODE TOGGLE */
+.mode-toggle {
+  margin-left: auto; display: flex; background: #f5f0ee;
+  border: 1px solid var(--border); border-radius: 8px; padding: 3px; gap: 2px;
+}
+.mode-btn {
+  padding: 5px 12px; border-radius: 6px; border: none; background: transparent;
+  font-family: var(--sans); font-size: 12px; font-weight: 600; cursor: pointer;
+  color: var(--muted); transition: all .2s; white-space: nowrap;
+}
+.mode-btn.active { background: #fff; color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+
+/* MAIN */
+.main { max-width: 920px; margin: 0 auto; padding: 20px 16px 0; }
+
+.section-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+}
+.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px; margin-bottom: 14px; }
+
+/* INPUTS */
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.full { grid-column: 1 / -1; }
+
+.fg { display: flex; flex-direction: column; gap: 6px; }
+.fg label { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: .3px; }
+.fg label em { color: var(--shopee); font-style: normal; margin-left: 2px; }
+
+.iw { position: relative; display: flex; align-items: center; }
+.ip { position: absolute; left: 10px; font-size: 12px; color: var(--muted); font-family: var(--mono); pointer-events: none; }
+.is { position: absolute; right: 10px; font-size: 11px; color: var(--muted); font-family: var(--mono); pointer-events: none; }
+
+input[type="number"], select {
+  width: 100%; background: #f9f6f4; border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: var(--mono); font-size: 13px;
+  padding: 9px 11px; outline: none; transition: border-color .2s; -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button { display: none; }
+input[type="number"]:focus, select:focus { border-color: var(--shopee); background: #fff; }
+.has-p input { padding-left: 24px; }
+.has-s input { padding-right: 30px; }
+
+select {
+  appearance: none; cursor: pointer; padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%238a7e79' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 9px center;
+  background-color: #f9f6f4;
+}
+
+/* FEE ROWS */
+.fee-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 0; border-bottom: 1px solid #f0ebe7; gap: 12px;
+}
+.fee-row:last-child { border-bottom: none; }
+.fee-info .fl { font-size: 13px; }
+.fee-info .fs { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.fee-control { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.fee-control input { width: 64px; text-align: right; }
+.fee-control span { font-size: 11px; color: var(--muted); }
+.fee-static { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--warn); }
+
+/* VOUCHER */
+.vchan-label { font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.vbtns { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+.vbtn {
+  padding: 4px 11px; border-radius: 14px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); font-family: var(--sans); font-size: 11px;
+  cursor: pointer; transition: all .15s;
+}
+.vbtn:hover { border-color: #999; color: var(--text); }
+.vbtn.as { background: var(--shopee); border-color: var(--shopee); color: #fff; }
+.vbtn.ad { background: var(--direct); border-color: var(--direct); color: #fff; }
+.vcustom {
+  background: #f9f6f4; border: 1px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+}
+.vcustom label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.vsep { height: 1px; background: var(--border); margin: 12px 0; }
+
+/* BTN */
+.btn-calc {
+  width: 100%; padding: 13px; background: var(--shopee); border: none; border-radius: 10px;
+  color: #fff; font-family: var(--sans); font-size: 14px; font-weight: 700;
+  cursor: pointer; transition: opacity .15s, transform .1s; margin-top: 2px; letter-spacing: .2px;
+}
+.btn-calc:hover { opacity: .9; }
+.btn-calc:active { transform: scale(.985); }
+.btn-calc.green { background: var(--direct); }
+
+/* RESULTS */
+.results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+.rcard {
+  border-radius: 12px; padding: 15px; border: 1px solid; position: relative; overflow: hidden;
+  animation: fadeUp .25s ease both;
+}
+.rcard::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.rcard.s { background: var(--shopee-bg); border-color: var(--shopee-border); }
+.rcard.s::before { background: var(--shopee); }
+.rcard.d { background: var(--direct-bg); border-color: var(--direct-border); }
+.rcard.d::before { background: var(--direct); }
+
+.rcard-title { font-size: 11px; font-weight: 700; letter-spacing: .4px; margin-bottom: 11px; display: flex; align-items: center; gap: 5px; }
+.rcard-title.s { color: var(--shopee); }
+.rcard-title.d { color: var(--direct); }
+.badge-sm { font-size: 9px; padding: 1px 5px; border-radius: 3px; font-family: var(--mono); }
+.badge-s { background: #fde8e3; color: #c0392b; }
+.badge-d { background: #d4f4e8; color: #0d6e4a; }
+
+.rrow { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; border-bottom: 1px solid #ece6e1; gap: 6px; }
+.rrow:last-child { border-bottom: none; }
+.rrow .rl { font-size: 10px; color: var(--muted); flex: 1; line-height: 1.4; }
+.rrow .rv { font-family: var(--mono); font-size: 11px; font-weight: 600; text-align: right; white-space: nowrap; }
+.rv.neg { color: var(--danger); }
+.rv.pos { color: var(--green); }
+.rdiv { height: 1px; background: #ece6e1; margin: 6px 0; }
+
+.profit-block { background: #f5f0ee; border-radius: 8px; padding: 11px; margin-top: 9px; text-align: center; }
+.profit-lbl { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+.profit-val { font-family: var(--mono); font-size: 20px; font-weight: 700; }
+.profit-pct { font-size: 10px; color: var(--muted); margin-top: 2px; font-family: var(--mono); }
+
+/* WINNER */
+.winner {
+  border-radius: 10px; padding: 12px 15px; display: flex; align-items: center; gap: 11px;
+  margin-bottom: 12px; border: 1px solid; animation: fadeUp .3s ease both;
+}
+.winner.s { background: var(--shopee-bg); border-color: var(--shopee); }
+.winner.d { background: var(--direct-bg); border-color: var(--direct); }
+.winner.tie { background: var(--surface); border-color: var(--border); }
+.winner-icon { font-size: 22px; }
+.winner h3 { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+.winner p { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+/* SUGGEST */
+.suggest-card {
+  background: var(--warn-bg); border: 1px solid var(--warn-border);
+  border-radius: 12px; padding: 16px; margin-bottom: 12px; animation: fadeUp .35s ease both;
+}
+.suggest-title { font-size: 12px; font-weight: 700; color: var(--warn); margin-bottom: 12px; }
+.suggest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.si { background: #fff; border-radius: 8px; padding: 11px; border: 1px solid var(--warn-border); }
+.si .sil { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+.si .siv { font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--warn); }
+.si .sin { font-size: 9px; color: #bbb; margin-top: 2px; }
+
+/* COMPARE */
+.summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px; animation: fadeUp .4s ease both; }
+.summary-title { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 12px; letter-spacing: .4px; }
+.cmp-row { display: flex; align-items: center; margin-bottom: 10px; gap: 10px; }
+.cmp-lbl { font-size: 10px; color: var(--muted); width: 80px; flex-shrink: 0; }
+.cmp-bars { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.bar-line { display: flex; gap: 5px; align-items: center; }
+.bar { height: 5px; border-radius: 3px; min-width: 2px; transition: width .5s cubic-bezier(.4,0,.2,1); }
+.bar-lbl { font-size: 9px; color: var(--muted); }
+
+/* REVERSE MODE RESULTS */
+.rev-result {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;
+}
+.rev-card {
+  border-radius: 12px; padding: 18px; border: 1px solid; position: relative; overflow: hidden;
+  animation: fadeUp .25s ease both;
+}
+.rev-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.rev-card.s { background: var(--shopee-bg); border-color: var(--shopee-border); }
+.rev-card.s::before { background: var(--shopee); }
+.rev-card.d { background: var(--direct-bg); border-color: var(--direct-border); }
+.rev-card.d::before { background: var(--direct); }
+.rev-channel { font-size: 11px; font-weight: 700; letter-spacing: .4px; margin-bottom: 14px; }
+.rev-channel.s { color: var(--shopee); }
+.rev-channel.d { color: var(--direct); }
+
+.rev-price-box {
+  background: #fff; border: 1.5px solid; border-radius: 10px; padding: 14px;
+  text-align: center; margin-bottom: 12px;
+}
+.rev-card.s .rev-price-box { border-color: var(--shopee-border); }
+.rev-card.d .rev-price-box { border-color: var(--direct-border); }
+.rev-price-label { font-size: 10px; color: var(--muted); margin-bottom: 4px; }
+.rev-price-value { font-family: var(--mono); font-size: 26px; font-weight: 700; line-height: 1; }
+.rev-card.s .rev-price-value { color: var(--shopee); }
+.rev-card.d .rev-price-value { color: var(--direct); }
+.rev-price-note { font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+.rev-breakdown { display: flex; flex-direction: column; gap: 4px; }
+.rev-row { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 1px solid #f0ebe7; }
+.rev-row:last-child { border-bottom: none; }
+.rev-row .rrl { font-size: 10px; color: var(--muted); }
+.rev-row .rrv { font-family: var(--mono); font-size: 10px; font-weight: 600; }
+
+/* PROFIT TARGET PILL */
+.target-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--direct-bg); border: 1px solid var(--direct-border);
+  border-radius: 20px; padding: 4px 12px; font-size: 12px;
+  color: var(--direct); font-weight: 600; margin-bottom: 14px;
+}
+
+/* ANIMATIONS */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* MODE PANELS */
+.mode-panel { display: none; }
+.mode-panel.active { display: block; }
+
+@media (max-width: 520px) {
+  .grid2, .grid3, .results-grid, .rev-result, .suggest-grid { grid-template-columns: 1fr; }
+  .mode-btn { font-size: 11px; padding: 5px 9px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">🛍</div>
+    <div>
+      <h1>Shopee Fee Calculator</h1>
+      <p>เปรียบเทียบกำไร Prime Seller vs ขายตรง (Line/Page)</p>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" onclick="switchMode('forward', this)">📊 คำนวณปกติ</button>
+      <button class="mode-btn" onclick="switchMode('reverse', this)">🔄 คำนวณย้อนกลับ</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ═══════════════════════════════════════════════
+     MODE A: FORWARD (ปกติ)
+═══════════════════════════════════════════════ -->
+<div id="panel-forward" class="mode-panel active">
+
+  <div class="section-label">📦 ข้อมูลสินค้าและราคา</div>
+  <div class="card">
+    <div class="grid2">
+      <div class="fg">
+        <label>ราคาทุน (COGS) <em>*</em></label>
+        <div class="iw has-p"><span class="ip">฿</span><input type="number" id="f_cogs" value="200" min="0" oninput="fOnInput()"></div>
+      </div>
+      <div class="fg">
+        <label>เป้ากำไร %</label>
+        <div class="iw has-s"><input type="number" id="f_targetM" value="20" min="0" max="100" oninput="fOnInput()"><span class="is">%</span></div>
+      </div>
+      <div class="fg">
+        <label>ราคาขาย Shopee <em>*</em></label>
+        <div class="iw has-p"><span class="ip">฿</span><input type="number" id="f_sellShopee" value="399" min="0" oninput="fOnInput()"></div>
+      </div>
+      <div class="fg">
+        <label>ราคาขายตรง (Line/Page)</label>
+        <div class="iw has-p"><span class="ip">฿</span><input type="number" id="f_sellDirect" placeholder="ใช้ราคา Shopee" oninput="fOnInput()"></div>
+      </div>
+      <div class="fg full">
+        <label>ประเภทร้าน Shopee</label>
+        <select id="f_sellerType" onchange="fOnInput()">
+          <option value="prime">🏪 Prime Seller — GP 18.19%</option>
+          <option value="mall">🏬 Mall Prime Seller — GP 21.4%</option>
+          <option value="normal">🛒 Normal Seller — GP 10%</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">🛍 ค่าธรรมเนียม Shopee</div>
+  <div class="card">
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">GP Fee</div><div class="fs" id="f_gpLabel">Prime Seller: 18.19%</div></div>
+      <div class="fee-static" id="f_gpDisplay">18.19%</div>
+    </div>
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">Transaction Fee</div><div class="fs">ค่าชำระเงิน (ปกติ ~2%)</div></div>
+      <div class="fee-control"><input type="number" id="f_txFee" value="2" min="0" max="10" oninput="fOnInput()"><span>%</span></div>
+    </div>
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">Coins Cashback (ร้านออกเอง)</div><div class="fs">ถ้าเปิดโปรฯ Coins</div></div>
+      <div class="fee-control"><input type="number" id="f_coins" value="0" min="0" max="20" oninput="fOnInput()"><span>%</span></div>
+    </div>
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">Shopee Ads</div><div class="fs">% ของราคาขาย</div></div>
+      <div class="fee-control"><input type="number" id="f_sAds" value="3" min="0" max="30" oninput="fOnInput()"><span>%</span></div>
+    </div>
+  </div>
+
+  <div class="section-label">💬 ต้นทุนขายตรง (Line/Page)</div>
+  <div class="card">
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">ค่าขนส่งต่อออเดอร์</div><div class="fs">ร้านออกเอง</div></div>
+      <div class="fee-control"><span style="font-size:11px;color:var(--muted)">฿</span><input type="number" id="f_shipping" value="0" min="0" oninput="fOnInput()" style="width:70px"></div>
+    </div>
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">Ads (FB / TikTok / Google)</div><div class="fs">% ของราคาขาย</div></div>
+      <div class="fee-control"><input type="number" id="f_dAds" value="5" min="0" max="50" oninput="fOnInput()"><span>%</span></div>
+    </div>
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">ค่าดำเนินการ / แพ็คเกจ</div><div class="fs">กล่อง, bubble wrap ฯลฯ (฿/ชิ้น)</div></div>
+      <div class="fee-control"><span style="font-size:11px;color:var(--muted)">฿</span><input type="number" id="f_other" value="0" min="0" oninput="fOnInput()" style="width:70px"></div>
+    </div>
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">Transaction Fee PromptPay/โอน</div></div>
+      <div class="fee-control"><input type="number" id="f_dTx" value="0" min="0" max="5" oninput="fOnInput()"><span>%</span></div>
+    </div>
+  </div>
+
+  <div class="section-label">🎟 Voucher / ส่วนลด</div>
+  <div class="card">
+    <div class="vchan-label">🛍 Shopee Voucher</div>
+    <div class="vbtns" id="f_sVBtns">
+      <button class="vbtn as" onclick="fSelV('s','none',this)">ไม่มี</button>
+      <button class="vbtn" onclick="fSelV('s','v10_200',this)">ลด 10% (ซื้อ≥200)</button>
+      <button class="vbtn" onclick="fSelV('s','v20_300',this)">ลด 20% (ซื้อ≥300, ≤150)</button>
+      <button class="vbtn" onclick="fSelV('s','v20_500',this)">ลด 20% (ซื้อ≥500)</button>
+      <button class="vbtn" onclick="fSelV('s','custom',this)">กำหนดเอง</button>
+    </div>
+    <div id="f_sVCustom" style="display:none;margin-bottom:12px">
+      <div class="vcustom">
+        <label>ลด:</label>
+        <div class="iw has-s" style="width:80px"><input type="number" id="f_sVPct" value="0" min="0" max="100" oninput="fOnInput()"><span class="is">%</span></div>
+        <label>สูงสุด:</label>
+        <div class="iw has-p" style="width:95px"><span class="ip">฿</span><input type="number" id="f_sVMax" value="0" min="0" oninput="fOnInput()"></div>
+        <label>ออกโดย:</label>
+        <select id="f_sVBy" onchange="fOnInput()" style="width:110px">
+          <option value="seller">ร้านออกเอง</option>
+          <option value="shopee">Shopee ออก</option>
+        </select>
+      </div>
+    </div>
+    <div class="vsep"></div>
+    <div class="vchan-label">💬 ส่วนลดขายตรง</div>
+    <div class="vbtns" id="f_dVBtns">
+      <button class="vbtn ad" onclick="fSelV('d','none',this)">ไม่มี</button>
+      <button class="vbtn" onclick="fSelV('d','fixed',this)">ลดราคาตรง (฿)</button>
+      <button class="vbtn" onclick="fSelV('d','pct',this)">ลด % จากราคา</button>
+      <button class="vbtn" onclick="fSelV('d','freeship',this)">ฟรีค่าส่ง</button>
+    </div>
+    <div id="f_dVCustom" style="display:none">
+      <div class="vcustom">
+        <div id="f_dFixedWrap" style="display:flex;align-items:center;gap:8px">
+          <label>ลดราคา:</label>
+          <div class="iw has-p" style="width:95px"><span class="ip">฿</span><input type="number" id="f_dVFixed" value="0" min="0" oninput="fOnInput()"></div>
+        </div>
+        <div id="f_dPctWrap" style="display:none;align-items:center;gap:8px">
+          <label>ลด:</label>
+          <div class="iw has-s" style="width:80px"><input type="number" id="f_dVPct" value="0" min="0" max="100" oninput="fOnInput()"><span class="is">%</span></div>
+          <label>สูงสุด:</label>
+          <div class="iw has-p" style="width:95px"><span class="ip">฿</span><input type="number" id="f_dVMax" value="0" min="0" oninput="fOnInput()"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-calc" onclick="calcForward()">⚡ คำนวณและเปรียบเทียบ</button>
+
+  <!-- FORWARD RESULTS -->
+  <div id="f_results" style="display:none; margin-top:22px">
+    <div class="section-label">📊 ผลการคำนวณ</div>
+    <div class="results-grid">
+      <div class="rcard s">
+        <div class="rcard-title s">🛍 Shopee <span id="f_sTypeBadge" class="badge-sm badge-s"></span></div>
+        <div class="rrow"><span class="rl">ราคาขาย</span><span class="rv" id="f_rs_sell">-</span></div>
+        <div class="rrow"><span class="rl">Voucher (ลูกค้าได้รับ)</span><span class="rv neg" id="f_rs_voucher">-</span></div>
+        <div class="rrow"><span class="rl">ร้านรับจริง</span><span class="rv" id="f_rs_net">-</span></div>
+        <div class="rdiv"></div>
+        <div class="rrow"><span class="rl">GP Fee</span><span class="rv neg" id="f_rs_gp">-</span></div>
+        <div class="rrow"><span class="rl">Transaction Fee</span><span class="rv neg" id="f_rs_tx">-</span></div>
+        <div class="rrow"><span class="rl">Coins Cashback</span><span class="rv neg" id="f_rs_coins">-</span></div>
+        <div class="rrow"><span class="rl">Shopee Ads</span><span class="rv neg" id="f_rs_ads">-</span></div>
+        <div class="rrow"><span class="rl">Voucher (ร้านออก)</span><span class="rv neg" id="f_rs_vcost">-</span></div>
+        <div class="rrow"><span class="rl">ราคาทุน</span><span class="rv neg" id="f_rs_cogs">-</span></div>
+        <div class="profit-block">
+          <div class="profit-lbl">กำไรสุทธิ</div>
+          <div class="profit-val" id="f_rs_profit">-</div>
+          <div class="profit-pct" id="f_rs_margin">-</div>
+        </div>
+      </div>
+      <div class="rcard d">
+        <div class="rcard-title d">💬 ขายตรง (Line/Page)</div>
+        <div class="rrow"><span class="rl">ราคาขาย</span><span class="rv" id="f_rd_sell">-</span></div>
+        <div class="rrow"><span class="rl">ส่วนลด / Voucher</span><span class="rv neg" id="f_rd_voucher">-</span></div>
+        <div class="rrow"><span class="rl">รับเข้าจริง</span><span class="rv" id="f_rd_net">-</span></div>
+        <div class="rdiv"></div>
+        <div class="rrow"><span class="rl">ค่าขนส่ง</span><span class="rv neg" id="f_rd_ship">-</span></div>
+        <div class="rrow"><span class="rl">Ads (FB/TikTok)</span><span class="rv neg" id="f_rd_ads">-</span></div>
+        <div class="rrow"><span class="rl">ค่าดำเนินการ</span><span class="rv neg" id="f_rd_other">-</span></div>
+        <div class="rrow"><span class="rl">Transaction Fee</span><span class="rv neg" id="f_rd_tx">-</span></div>
+        <div class="rrow"><span class="rl">ราคาทุน</span><span class="rv neg" id="f_rd_cogs">-</span></div>
+        <div class="profit-block">
+          <div class="profit-lbl">กำไรสุทธิ</div>
+          <div class="profit-val" id="f_rd_profit">-</div>
+          <div class="profit-pct" id="f_rd_margin">-</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="f_winner" class="winner">
+      <div class="winner-icon" id="f_wIcon">🏆</div>
+      <div class="winner"><h3 id="f_wTitle">-</h3><p id="f_wDesc">-</p></div>
+    </div>
+
+    <div class="suggest-card">
+      <div class="suggest-title">💡 ราคาแนะนำ — เพื่อกำไร <span id="f_tLabel">20</span>% หลังหักทุกค่าใช้จ่าย</div>
+      <div class="suggest-grid">
+        <div class="si"><div class="sil">🛍 Shopee — ราคาขั้นต่ำ</div><div class="siv" id="f_sg_sMin">-</div><div class="sin">ยังได้กำไรตามเป้า</div></div>
+        <div class="si"><div class="sil">💬 ขายตรง — ราคาขั้นต่ำ</div><div class="siv" id="f_sg_dMin">-</div><div class="sin">หลังค่าขนส่ง+Ads</div></div>
+        <div class="si"><div class="sil">🎯 ลดราคา Line ได้สูงสุด</div><div class="siv" id="f_sg_maxDisc">-</div><div class="sin">ยังได้กำไรเท่า Shopee</div></div>
+        <div class="si"><div class="sil">📦 Break-even ขายตรง</div><div class="siv" id="f_sg_be">-</div><div class="sin">ราคาต่ำสุดไม่ขาดทุน</div></div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-title">⚖️ สรุปเปรียบเทียบ</div>
+      <div class="cmp-row">
+        <div class="cmp-lbl">ต้นทุนรวม</div>
+        <div class="cmp-bars">
+          <div class="bar-line"><div class="bar" id="cb_sc" style="background:var(--shopee)"></div><span class="bar-lbl" style="color:var(--shopee)" id="cb_sc_v">-</span></div>
+          <div class="bar-line"><div class="bar" id="cb_dc" style="background:var(--direct)"></div><span class="bar-lbl" style="color:var(--direct)" id="cb_dc_v">-</span></div>
+        </div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-lbl">Margin %</div>
+        <div class="cmp-bars">
+          <div class="bar-line"><div class="bar" id="cb_sm" style="background:var(--shopee)"></div><span class="bar-lbl" style="color:var(--shopee)" id="cb_sm_v">-</span></div>
+          <div class="bar-line"><div class="bar" id="cb_dm" style="background:var(--direct)"></div><span class="bar-lbl" style="color:var(--direct)" id="cb_dm_v">-</span></div>
+        </div>
+      </div>
+      <div class="cmp-row">
+        <div class="cmp-lbl">ลูกค้าประหยัด</div>
+        <div class="cmp-bars">
+          <div class="bar-line"><div class="bar" id="cb_ss" style="background:var(--shopee)"></div><span class="bar-lbl" style="color:var(--shopee)" id="cb_ss_v">-</span></div>
+          <div class="bar-line"><div class="bar" id="cb_ds" style="background:var(--direct)"></div><span class="bar-lbl" style="color:var(--direct)" id="cb_ds_v">-</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div><!-- /panel-forward -->
+
+
+<!-- ═══════════════════════════════════════════════
+     MODE B: REVERSE (คำนวณย้อนกลับ)
+═══════════════════════════════════════════════ -->
+<div id="panel-reverse" class="mode-panel">
+
+  <div style="background:linear-gradient(135deg,var(--direct-bg),#f9f6f4);border:1px solid var(--direct-border);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:var(--direct);line-height:1.6">
+    <strong>🔄 คำนวณย้อนกลับ</strong> — กรอกราคาทุน + กำไรที่ต้องการ + Voucher ที่จะให้ลูกค้า<br>
+    แล้วระบบจะคำนวณ <strong>ราคาขายที่ต้องตั้ง</strong> ทั้ง Shopee และขายตรง
+  </div>
+
+  <div class="section-label">🎯 เป้าหมายกำไร</div>
+  <div class="card">
+    <div class="grid2">
+      <div class="fg">
+        <label>ราคาทุน (COGS) <em>*</em></label>
+        <div class="iw has-p"><span class="ip">฿</span><input type="number" id="r_cogs" value="200" min="0"></div>
+      </div>
+      <div class="fg">
+        <label>วิธีระบุกำไรที่ต้องการ</label>
+        <select id="r_profitMode" onchange="rToggleProfitMode()">
+          <option value="pct">กำไร % (ของราคาขาย)</option>
+          <option value="baht">กำไร ฿ (จำนวนเงินแน่นอน)</option>
+          <option value="markup">Markup % (ของต้นทุน)</option>
+        </select>
+      </div>
+      <div class="fg" id="r_profitPctWrap">
+        <label>กำไร % ที่ต้องการ <em>*</em></label>
+        <div class="iw has-s"><input type="number" id="r_profitPct" value="25" min="0" max="99"><span class="is">%</span></div>
+      </div>
+      <div class="fg" id="r_profitBahtWrap" style="display:none">
+        <label>กำไร (฿) ที่ต้องการ <em>*</em></label>
+        <div class="iw has-p"><span class="ip">฿</span><input type="number" id="r_profitBaht" value="50" min="0"></div>
+      </div>
+      <div class="fg" id="r_profitMarkupWrap" style="display:none">
+        <label>Markup % (บนต้นทุน) <em>*</em></label>
+        <div class="iw has-s"><input type="number" id="r_profitMarkup" value="50" min="0"><span class="is">%</span></div>
+      </div>
+      <div class="fg full">
+        <label>ประเภทร้าน Shopee</label>
+        <select id="r_sellerType" onchange="rOnInput()">
+          <option value="prime">🏪 Prime Seller — GP 18.19%</option>
+          <option value="mall">🏬 Mall Prime Seller — GP 21.4%</option>
+          <option value="normal">🛒 Normal Seller — GP 10%</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-label">🛍 ค่าธรรมเนียม Shopee</div>
+  <div class="card">
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">GP Fee</div><div class="fs" id="r_gpLabel">Prime Seller: 18.19%</div></div>
+      <div class="fee-static" id="r_gpDisplay">18.19%</div>
+    </div>
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">Transaction Fee</div></div>
+      <div class="fee-control"><input type="number" id="r_txFee" value="2" min="0" max="10"><span>%</span></div>
+    </div>
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">Coins Cashback (ร้านออกเอง)</div></div>
+      <div class="fee-control"><input type="number" id="r_coins" value="0" min="0" max="20"><span>%</span></div>
+    </div>
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">Shopee Ads</div><div class="fs">% ของราคาขาย</div></div>
+      <div class="fee-control"><input type="number" id="r_sAds" value="3" min="0" max="30"><span>%</span></div>
+    </div>
+  </div>
+
+  <div class="section-label">💬 ต้นทุนขายตรง (Line/Page)</div>
+  <div class="card">
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">ค่าขนส่งต่อออเดอร์</div></div>
+      <div class="fee-control"><span style="font-size:11px;color:var(--muted)">฿</span><input type="number" id="r_shipping" value="0" min="0" style="width:70px"></div>
+    </div>
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">Ads (FB / TikTok / Google)</div></div>
+      <div class="fee-control"><input type="number" id="r_dAds" value="5" min="0" max="50"><span>%</span></div>
+    </div>
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">ค่าดำเนินการ / แพ็คเกจ</div></div>
+      <div class="fee-control"><span style="font-size:11px;color:var(--muted)">฿</span><input type="number" id="r_other" value="0" min="0" style="width:70px"></div>
+    </div>
+    <div class="fee-row">
+      <div class="fee-info"><div class="fl">Transaction Fee PromptPay/โอน</div></div>
+      <div class="fee-control"><input type="number" id="r_dTx" value="0" min="0" max="5"><span>%</span></div>
+    </div>
+  </div>
+
+  <div class="section-label">🎟 Voucher / ส่วนลดที่ต้องการให้ลูกค้า</div>
+  <div class="card">
+    <p style="font-size:11px;color:var(--muted);margin-bottom:12px">กรอก Voucher/ส่วนลดที่ต้องการให้ — ระบบจะคำนวณราคาขายที่ต้องตั้งเพื่อให้ยังได้กำไรตามเป้า</p>
+
+    <div class="vchan-label">🛍 Shopee — Voucher ที่จะให้</div>
+    <div class="vbtns" id="r_sVBtns">
+      <button class="vbtn as" onclick="rSelV('s','none',this)">ไม่มี</button>
+      <button class="vbtn" onclick="rSelV('s','v10_200',this)">ลด 10% (ซื้อ≥200)</button>
+      <button class="vbtn" onclick="rSelV('s','v20_300',this)">ลด 20% (ซื้อ≥300, ≤150)</button>
+      <button class="vbtn" onclick="rSelV('s','v20_500',this)">ลด 20% (ซื้อ≥500)</button>
+      <button class="vbtn" onclick="rSelV('s','custom',this)">กำหนดเอง</button>
+    </div>
+    <div id="r_sVCustom" style="display:none;margin-bottom:12px">
+      <div class="vcustom">
+        <label>ลด:</label>
+        <div class="iw has-s" style="width:80px"><input type="number" id="r_sVPct" value="0" min="0" max="100"><span class="is">%</span></div>
+        <label>สูงสุด:</label>
+        <div class="iw has-p" style="width:95px"><span class="ip">฿</span><input type="number" id="r_sVMax" value="0" min="0"></div>
+        <label>ออกโดย:</label>
+        <select id="r_sVBy" style="width:110px">
+          <option value="seller">ร้านออกเอง</option>
+          <option value="shopee">Shopee ออก</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="vsep"></div>
+
+    <div class="vchan-label">💬 ขายตรง — ส่วนลดที่จะให้</div>
+    <div class="vbtns" id="r_dVBtns">
+      <button class="vbtn ad" onclick="rSelV('d','none',this)">ไม่มี</button>
+      <button class="vbtn" onclick="rSelV('d','fixed',this)">ลดราคาตรง (฿)</button>
+      <button class="vbtn" onclick="rSelV('d','pct',this)">ลด % จากราคา</button>
+      <button class="vbtn" onclick="rSelV('d','freeship',this)">ฟรีค่าส่ง</button>
+    </div>
+    <div id="r_dVCustom" style="display:none">
+      <div class="vcustom">
+        <div id="r_dFixedWrap" style="display:flex;align-items:center;gap:8px">
+          <label>ลดราคา:</label>
+          <div class="iw has-p" style="width:95px"><span class="ip">฿</span><input type="number" id="r_dVFixed" value="0" min="0"></div>
+        </div>
+        <div id="r_dPctWrap" style="display:none;align-items:center;gap:8px">
+          <label>ลด:</label>
+          <div class="iw has-s" style="width:80px"><input type="number" id="r_dVPct" value="0" min="0" max="100"><span class="is">%</span></div>
+          <label>สูงสุด:</label>
+          <div class="iw has-p" style="width:95px"><span class="ip">฿</span><input type="number" id="r_dVMax" value="0" min="0"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-calc green" onclick="calcReverse()">🔄 คำนวณราคาที่ต้องตั้ง</button>
+
+  <!-- REVERSE RESULTS -->
+  <div id="r_results" style="display:none; margin-top:22px">
+    <div class="section-label">✅ ราคาขายที่ต้องตั้ง</div>
+
+    <div id="r_targetPill" class="target-pill">✅ <span id="r_targetText">กำไรเป้า 25%</span></div>
+
+    <div class="rev-result">
+      <!-- Shopee rev card -->
+      <div class="rev-card s">
+        <div class="rev-channel s">🛍 Shopee <span id="r_sTypeBadge" class="badge-sm badge-s"></span></div>
+        <div class="rev-price-box">
+          <div class="rev-price-label">ราคาขายที่ต้องตั้ง</div>
+          <div class="rev-price-value" id="r_rs_price">-</div>
+          <div class="rev-price-note" id="r_rs_note">รวม Voucher แล้ว</div>
+        </div>
+        <div class="rev-breakdown">
+          <div class="rev-row"><span class="rrl">GP Fee (<span id="r_rs_gpPct">-</span>)</span><span class="rrv neg" id="r_rs_gp">-</span></div>
+          <div class="rev-row"><span class="rrl">Transaction Fee</span><span class="rrv neg" id="r_rs_tx">-</span></div>
+          <div class="rev-row"><span class="rrl">Coins Cashback</span><span class="rrv neg" id="r_rs_coins">-</span></div>
+          <div class="rev-row"><span class="rrl">Shopee Ads</span><span class="rrv neg" id="r_rs_ads">-</span></div>
+          <div class="rev-row"><span class="rrl">Voucher (ร้านออก)</span><span class="rrv neg" id="r_rs_vcost">-</span></div>
+          <div class="rev-row"><span class="rrl">ราคาทุน</span><span class="rrv neg" id="r_rs_cogs">-</span></div>
+          <div class="rdiv"></div>
+          <div class="rev-row" style="padding:4px 0"><span class="rrl" style="font-weight:700;color:var(--text)">กำไรสุทธิ</span><span class="rrv pos" id="r_rs_profit" style="font-size:13px">-</span></div>
+          <div class="rev-row"><span class="rrl">Margin %</span><span class="rrv" id="r_rs_margin" style="color:var(--muted)">-</span></div>
+        </div>
+      </div>
+
+      <!-- Direct rev card -->
+      <div class="rev-card d">
+        <div class="rev-channel d">💬 ขายตรง (Line/Page)</div>
+        <div class="rev-price-box">
+          <div class="rev-price-label">ราคาขายที่ต้องตั้ง</div>
+          <div class="rev-price-value" id="r_rd_price">-</div>
+          <div class="rev-price-note" id="r_rd_note">รวมส่วนลดแล้ว</div>
+        </div>
+        <div class="rev-breakdown">
+          <div class="rev-row"><span class="rrl">ค่าขนส่ง</span><span class="rrv neg" id="r_rd_ship">-</span></div>
+          <div class="rev-row"><span class="rrl">Ads (FB/TikTok)</span><span class="rrv neg" id="r_rd_ads">-</span></div>
+          <div class="rev-row"><span class="rrl">ค่าดำเนินการ</span><span class="rrv neg" id="r_rd_other">-</span></div>
+          <div class="rev-row"><span class="rrl">Transaction Fee</span><span class="rrv neg" id="r_rd_tx">-</span></div>
+          <div class="rev-row"><span class="rrl">ส่วนลด (ร้านออก)</span><span class="rrv neg" id="r_rd_disc">-</span></div>
+          <div class="rev-row"><span class="rrl">ราคาทุน</span><span class="rrv neg" id="r_rd_cogs">-</span></div>
+          <div class="rdiv"></div>
+          <div class="rev-row" style="padding:4px 0"><span class="rrl" style="font-weight:700;color:var(--text)">กำไรสุทธิ</span><span class="rrv pos" id="r_rd_profit" style="font-size:13px">-</span></div>
+          <div class="rev-row"><span class="rrl">Margin %</span><span class="rrv" id="r_rd_margin" style="color:var(--muted)">-</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- comparison tips -->
+    <div class="suggest-card" style="animation-delay:.1s">
+      <div class="suggest-title">📌 สรุปข้อแนะนำ</div>
+      <div class="suggest-grid">
+        <div class="si"><div class="sil">🛍 ราคาขาย Shopee</div><div class="siv" id="r_tip_sPrice">-</div><div class="sin">ตั้งราคานี้ให้ได้กำไรตามเป้า</div></div>
+        <div class="si"><div class="sil">💬 ราคาขายตรง</div><div class="siv" id="r_tip_dPrice">-</div><div class="sin">หลังหักต้นทุนทั้งหมด</div></div>
+        <div class="si"><div class="sil">📉 ลูกค้าขายตรงถูกกว่า</div><div class="siv" id="r_tip_saving">-</div><div class="sin">จูงใจให้ซื้อตรงได้</div></div>
+        <div class="si"><div class="sil">💰 กำไรที่จะได้รับ</div><div class="siv" id="r_tip_profit">-</div><div class="sin" id="r_tip_profitNote">ต่อออเดอร์</div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /panel-reverse -->
+
+</div><!-- /main -->
+
+<script>
+// ─── SHARED ─────────────────────────────────────────────────────────
+const GP = { prime: 0.1819, mall: 0.214, normal: 0.10 };
+const GP_LBL = { prime: 'Prime Seller: 18.19%', mall: 'Mall Prime: 21.4%', normal: 'Normal: 10%' };
+const GP_DISP = { prime: '18.19%', mall: '21.4%', normal: '10%' };
+const SNAME = { prime: 'Prime', mall: 'Mall', normal: 'Normal' };
+
+let fSV = 'none', fDV = 'none';
+let rSV = 'none', rDV = 'none';
+
+function switchMode(m, btn) {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-forward').classList.toggle('active', m === 'forward');
+  document.getElementById('panel-reverse').classList.toggle('active', m === 'reverse');
+}
+
+function v(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function fmt(n) {
+  const abs = Math.abs(n);
+  const s = abs.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (n < 0 ? '-' : '') + '฿' + s;
+}
+function setBar(id, w) { document.getElementById(id).style.width = Math.max(w, 0) + '%'; }
+
+// ─── FORWARD HELPERS ────────────────────────────────────────────────
+function fOnInput() {
+  const st = document.getElementById('f_sellerType').value;
+  document.getElementById('f_gpLabel').textContent = GP_LBL[st];
+  document.getElementById('f_gpDisplay').textContent = GP_DISP[st];
+}
+
+function fSelV(ch, type, btn) {
+  if (ch === 's') {
+    fSV = type;
+    document.querySelectorAll('#f_sVBtns .vbtn').forEach(b => b.classList.remove('as'));
+    btn.classList.add('as');
+    document.getElementById('f_sVCustom').style.display = type === 'custom' ? 'block' : 'none';
+  } else {
+    fDV = type;
+    document.querySelectorAll('#f_dVBtns .vbtn').forEach(b => b.classList.remove('ad'));
+    btn.classList.add('ad');
+    const show = type !== 'none' && type !== 'freeship';
+    document.getElementById('f_dVCustom').style.display = show ? 'block' : 'none';
+    document.getElementById('f_dFixedWrap').style.display = type === 'fixed' ? 'flex' : 'none';
+    document.getElementById('f_dPctWrap').style.display = type === 'pct' ? 'flex' : 'none';
+  }
+}
+
+function getShopeeVoucher(price, vType, vId) {
+  const rules = {
+    v10_200: { pct: .10, max: 3000, min: 200 },
+    v20_300: { pct: .20, max: 150,  min: 300 },
+    v20_500: { pct: .20, max: 2000, min: 500 },
+  };
+  if (vType === 'none') return { disc: 0, bySeller: false };
+  if (vType === 'custom') {
+    const p = v(vId + 'Pct') / 100;
+    const mx = v(vId + 'Max');
+    const disc = mx > 0 ? Math.min(price * p, mx) : price * p;
+    const bySeller = document.getElementById(vId.replace('sV', 'sVBy') || 'f_sVBy').value === 'seller';
+    return { disc, bySeller };
+  }
+  const r = rules[vType];
+  if (!r || price < r.min) return { disc: 0, bySeller: false };
+  return { disc: Math.min(price * r.pct, r.max), bySeller: false };
+}
+
+function getDirectVoucher(price, vType, prefix) {
+  if (vType === 'none' || vType === 'freeship') return 0;
+  if (vType === 'fixed') return v(prefix + 'dVFixed');
+  if (vType === 'pct') {
+    const p = v(prefix + 'dVPct') / 100;
+    const mx = v(prefix + 'dVMax');
+    return mx > 0 ? Math.min(price * p, mx) : price * p;
+  }
+  return 0;
+}
+
+// ─── FORWARD CALC ───────────────────────────────────────────────────
+function calcForward() {
+  const cogs = v('f_cogs'), spS = v('f_sellShopee'), spD = v('f_sellDirect') || spS;
+  const targetM = v('f_targetM') / 100;
+  const st = document.getElementById('f_sellerType').value;
+  const gpRate = GP[st], txPct = v('f_txFee')/100, coinsPct = v('f_coins')/100;
+  const sAdsPct = v('f_sAds')/100, shipping = v('f_shipping');
+  const dAdsPct = v('f_dAds')/100, other = v('f_other'), dTxPct = v('f_dTx')/100;
+
+  const { disc: sVDisc, bySeller: sVBySeller } = getShopeeVoucher(spS, fSV, 'f_sV');
+  const dVDisc = getDirectVoucher(spD, fDV, 'f_');
+  const freeshipDisc = fDV === 'freeship' ? shipping : 0;
+  const sVSellerCost = sVBySeller ? sVDisc : 0;
+
+  const gpFee = spS * gpRate, txFeeS = spS * txPct, coinsAmt = spS * coinsPct, sAdsAmt = spS * sAdsPct;
+  const sProfit = spS - gpFee - txFeeS - coinsAmt - sAdsAmt - sVSellerCost - cogs;
+  const sMargin = (sProfit / spS) * 100;
+  const sTotalCost = gpFee + txFeeS + coinsAmt + sAdsAmt + sVSellerCost + cogs;
+
+  const dAdsAmt = spD * dAdsPct, dTxAmt = spD * dTxPct;
+  const dProfit = spD - dVDisc - freeshipDisc - shipping - dAdsAmt - other - dTxAmt - cogs;
+  const dMargin = (dProfit / spD) * 100;
+  const dTotalCost = shipping + dAdsAmt + other + dTxAmt + cogs;
+
+  // Fill Shopee col
+  document.getElementById('f_sTypeBadge').textContent = SNAME[st];
+  document.getElementById('f_rs_sell').textContent = fmt(spS);
+  document.getElementById('f_rs_voucher').textContent = sVDisc > 0 ? fmt(-sVDisc)+(sVBySeller?' (ร้าน)':' (Shopee)') : '฿0.00';
+  document.getElementById('f_rs_net').textContent = fmt(spS - (sVBySeller ? 0 : sVDisc));
+  document.getElementById('f_rs_gp').textContent = fmt(-gpFee)+` (${(gpRate*100).toFixed(2)}%)`;
+  document.getElementById('f_rs_tx').textContent = fmt(-txFeeS);
+  document.getElementById('f_rs_coins').textContent = coinsAmt > 0 ? fmt(-coinsAmt) : '฿0.00';
+  document.getElementById('f_rs_ads').textContent = sAdsAmt > 0 ? fmt(-sAdsAmt) : '฿0.00';
+  document.getElementById('f_rs_vcost').textContent = sVSellerCost > 0 ? fmt(-sVSellerCost) : '฿0.00';
+  document.getElementById('f_rs_cogs').textContent = fmt(-cogs);
+  const spe = document.getElementById('f_rs_profit');
+  spe.textContent = fmt(sProfit); spe.style.color = sProfit >= 0 ? 'var(--green)' : 'var(--danger)';
+  document.getElementById('f_rs_margin').textContent = sMargin.toFixed(2) + '% margin';
+
+  // Fill Direct col
+  document.getElementById('f_rd_sell').textContent = fmt(spD);
+  document.getElementById('f_rd_voucher').textContent = (dVDisc+freeshipDisc) > 0 ? fmt(-(dVDisc+freeshipDisc)) : '฿0.00';
+  document.getElementById('f_rd_net').textContent = fmt(spD - dVDisc - freeshipDisc);
+  document.getElementById('f_rd_ship').textContent = fmt(-shipping);
+  document.getElementById('f_rd_ads').textContent = dAdsAmt > 0 ? fmt(-dAdsAmt) : '฿0.00';
+  document.getElementById('f_rd_other').textContent = other > 0 ? fmt(-other) : '฿0.00';
+  document.getElementById('f_rd_tx').textContent = dTxAmt > 0 ? fmt(-dTxAmt) : '฿0.00';
+  document.getElementById('f_rd_cogs').textContent = fmt(-cogs);
+  const dpe = document.getElementById('f_rd_profit');
+  dpe.textContent = fmt(dProfit); dpe.style.color = dProfit >= 0 ? 'var(--green)' : 'var(--danger)';
+  document.getElementById('f_rd_margin').textContent = dMargin.toFixed(2) + '% margin';
+
+  // Winner
+  const wb = document.getElementById('f_winner');
+  wb.className = 'winner';
+  if (sProfit > dProfit + 0.5) {
+    wb.classList.add('s');
+    document.getElementById('f_wIcon').textContent = '🏆';
+    document.getElementById('f_wTitle').textContent = 'Shopee ให้กำไรมากกว่า';
+    document.getElementById('f_wDesc').textContent = `กำไรต่างกัน ${fmt(sProfit-dProfit)} ต่อชิ้น`;
+  } else if (dProfit > sProfit + 0.5) {
+    wb.classList.add('d');
+    document.getElementById('f_wIcon').textContent = '🏆';
+    document.getElementById('f_wTitle').textContent = 'ขายตรง (Line/Page) กำไรดีกว่า!';
+    document.getElementById('f_wDesc').textContent = `กำไรต่างกัน ${fmt(dProfit-sProfit)} — ยังลดราคาให้ลูกค้าได้อีก`;
+  } else {
+    wb.classList.add('tie');
+    document.getElementById('f_wIcon').textContent = '⚖️';
+    document.getElementById('f_wTitle').textContent = 'กำไรใกล้เคียงกัน';
+    document.getElementById('f_wDesc').textContent = 'เลือกช่องทางที่จัดการง่ายกว่า หรือมี Traffic มากกว่า';
+  }
+
+  // Suggestions
+  document.getElementById('f_tLabel').textContent = v('f_targetM');
+  const sDeduct = gpRate + txPct + coinsPct + sAdsPct;
+  const sMin = cogs / (1 - sDeduct - targetM);
+  document.getElementById('f_sg_sMin').textContent = isFinite(sMin) ? fmt(sMin) : 'N/A';
+  const dDeduct = dAdsPct + dTxPct;
+  const dMin = (cogs + shipping + other) / (1 - dDeduct - targetM);
+  document.getElementById('f_sg_dMin').textContent = isFinite(dMin) ? fmt(dMin) : 'N/A';
+  const dNeeded = (sProfit + cogs + shipping + other) / (1 - dAdsPct - dTxPct);
+  const maxDisc = spS - dNeeded;
+  const mde = document.getElementById('f_sg_maxDisc');
+  if (maxDisc > 0) { mde.textContent = fmt(maxDisc)+` (${((maxDisc/spS)*100).toFixed(1)}%)`; mde.style.color='var(--direct)'; }
+  else { mde.textContent = 'ราคาตรงต้องสูงกว่า'; mde.style.color='var(--danger)'; }
+  document.getElementById('f_sg_be').textContent = fmt(cogs + shipping + other + dAdsAmt + dTxAmt);
+
+  // Compare bars
+  const maxC = Math.max(sTotalCost, dTotalCost, 1);
+  setBar('cb_sc', sTotalCost/maxC*100); document.getElementById('cb_sc_v').textContent = `Shopee ${fmt(sTotalCost)}`;
+  setBar('cb_dc', dTotalCost/maxC*100); document.getElementById('cb_dc_v').textContent = `ขายตรง ${fmt(dTotalCost)}`;
+  const maxM = Math.max(Math.abs(sMargin), Math.abs(dMargin), 1);
+  setBar('cb_sm', Math.max(sMargin,0)/maxM*100); document.getElementById('cb_sm_v').textContent = `Shopee ${sMargin.toFixed(1)}%`;
+  setBar('cb_dm', Math.max(dMargin,0)/maxM*100); document.getElementById('cb_dm_v').textContent = `ขายตรง ${dMargin.toFixed(1)}%`;
+  const customerSaveD = dVDisc + freeshipDisc;
+  const maxSv = Math.max(sVDisc, customerSaveD, 1);
+  setBar('cb_ss', sVDisc/maxSv*100); document.getElementById('cb_ss_v').textContent = `Shopee ${fmt(sVDisc)}`;
+  setBar('cb_ds', customerSaveD/maxSv*100); document.getElementById('cb_ds_v').textContent = `ขายตรง ${fmt(customerSaveD)}`;
+
+  document.getElementById('f_results').style.display = 'block';
+  document.getElementById('f_results').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// ─── REVERSE HELPERS ────────────────────────────────────────────────
+function rOnInput() {
+  const st = document.getElementById('r_sellerType').value;
+  document.getElementById('r_gpLabel').textContent = GP_LBL[st];
+  document.getElementById('r_gpDisplay').textContent = GP_DISP[st];
+}
+
+function rToggleProfitMode() {
+  const m = document.getElementById('r_profitMode').value;
+  document.getElementById('r_profitPctWrap').style.display    = m === 'pct'    ? '' : 'none';
+  document.getElementById('r_profitBahtWrap').style.display   = m === 'baht'   ? '' : 'none';
+  document.getElementById('r_profitMarkupWrap').style.display = m === 'markup' ? '' : 'none';
+}
+
+function rSelV(ch, type, btn) {
+  if (ch === 's') {
+    rSV = type;
+    document.querySelectorAll('#r_sVBtns .vbtn').forEach(b => b.classList.remove('as'));
+    btn.classList.add('as');
+    document.getElementById('r_sVCustom').style.display = type === 'custom' ? 'block' : 'none';
+  } else {
+    rDV = type;
+    document.querySelectorAll('#r_dVBtns .vbtn').forEach(b => b.classList.remove('ad'));
+    btn.classList.add('ad');
+    const show = type !== 'none' && type !== 'freeship';
+    document.getElementById('r_dVCustom').style.display = show ? 'block' : 'none';
+    document.getElementById('r_dFixedWrap').style.display = type === 'fixed' ? 'flex' : 'none';
+    document.getElementById('r_dPctWrap').style.display = type === 'pct' ? 'flex' : 'none';
+  }
+}
+
+// ─── REVERSE CALC ───────────────────────────────────────────────────
+function calcReverse() {
+  const cogs = v('r_cogs');
+  const st = document.getElementById('r_sellerType').value;
+  const gpRate = GP[st], txPct = v('r_txFee')/100, coinsPct = v('r_coins')/100;
+  const sAdsPct = v('r_sAds')/100, shipping = v('r_shipping');
+  const dAdsPct = v('r_dAds')/100, other = v('r_other'), dTxPct = v('r_dTx')/100;
+
+  const profitMode = document.getElementById('r_profitMode').value;
+
+  // ── SHOPEE REVERSE ──
+  // Revenue = P (sell price before voucher reduction visible to shop)
+  // GP computed on P, sellerVoucher is borne by seller
+  // sProfit = P - gpFee - txFee - coins - sAds - sellerVoucherCost - cogs = targetProfit
+  // All fees are linear % of P except sellerVoucherCost which depends on voucher type.
+  //
+  // For Shopee voucher "by Shopee": no seller cost, but Shopee voucher reduces customer price, NOT seller revenue
+  // For "by Seller": sellerVoucherCost = disc amount (% of P)
+  //
+  // Iterative solve for P since voucher disc depends on P.
+
+  function solveShopeePrice(targetProfit) {
+    // Deductible rates on P
+    const baseDeduct = gpRate + txPct + coinsPct + sAdsPct;
+    // Start with estimate
+    let P = (cogs + targetProfit) / (1 - baseDeduct);
+    for (let i = 0; i < 30; i++) {
+      const vInfo = getShopeeVoucherRaw(P, rSV, 'r_sV');
+      const sellerVCost = vInfo.bySeller ? vInfo.disc : 0;
+      const profit = P - P*baseDeduct - sellerVCost - cogs;
+      const err = profit - targetProfit;
+      if (Math.abs(err) < 0.01) break;
+      P = P - err / (1 - baseDeduct); // Newton step approx
+    }
+    return P;
+  }
+
+  // Direct reverse: P_direct - disc - freeship - shipping - P*dAdsPct - other - P*dTxPct - cogs = targetProfit
+  // disc can be fixed (฿) or % of P
+  function solveDirectPrice(targetProfit) {
+    const baseDeduct = dAdsPct + dTxPct;
+    const fixedCosts = shipping + other + cogs;
+    if (rDV === 'none') {
+      return (targetProfit + fixedCosts) / (1 - baseDeduct);
+    }
+    if (rDV === 'freeship') {
+      // customer gets free ship (seller pays shipping anyway)
+      return (targetProfit + fixedCosts + shipping) / (1 - baseDeduct);
+    }
+    if (rDV === 'fixed') {
+      const disc = v('r_dVFixed');
+      return (targetProfit + fixedCosts + disc) / (1 - baseDeduct);
+    }
+    if (rDV === 'pct') {
+      const dPct = v('r_dVPct') / 100;
+      const dMax = v('r_dVMax');
+      // iterative
+      let P = (targetProfit + fixedCosts) / (1 - baseDeduct - dPct);
+      for (let i = 0; i < 20; i++) {
+        const disc = dMax > 0 ? Math.min(P * dPct, dMax) : P * dPct;
+        const profit = P - disc - shipping - P*dAdsPct - other - P*dTxPct - cogs;
+        const err = profit - targetProfit;
+        if (Math.abs(err) < 0.01) break;
+        P = P - err / (1 - baseDeduct);
+      }
+      return P;
+    }
+    return (targetProfit + fixedCosts) / (1 - baseDeduct);
+  }
+
+  function getShopeeVoucherRaw(P, vType, prefix) {
+    const rules = { v10_200:{pct:.10,max:3000,min:200}, v20_300:{pct:.20,max:150,min:300}, v20_500:{pct:.20,max:2000,min:500} };
+    if (vType === 'none') return {disc:0,bySeller:false};
+    if (vType === 'custom') {
+      const pct = v(prefix+'Pct')/100, mx = v(prefix+'Max');
+      const disc = mx > 0 ? Math.min(P*pct, mx) : P*pct;
+      const bySeller = document.getElementById('r_sVBy').value === 'seller';
+      return {disc, bySeller};
+    }
+    const r = rules[vType];
+    if (!r || P < r.min) return {disc:0,bySeller:false};
+    return {disc: Math.min(P*r.pct, r.max), bySeller:false};
+  }
+
+  // Determine target profit in ฿
+  let targetProfit, targetPct;
+  if (profitMode === 'pct') {
+    targetPct = v('r_profitPct') / 100;
+    // For %: targetProfit = P * targetPct → need to fold into solve
+    // Shopee: P - P*(gpRate+tx+coins+ads) - sellerV - cogs = P * targetPct
+    // P * (1 - baseDeduct - targetPct) = cogs + sellerV → iterative
+    function solveShopeeByPct() {
+      const baseDeduct = gpRate + txPct + coinsPct + sAdsPct + targetPct;
+      let P = cogs / (1 - baseDeduct);
+      for (let i = 0; i < 30; i++) {
+        const vInfo = getShopeeVoucherRaw(P, rSV, 'r_sV');
+        const sellerVCost = vInfo.bySeller ? vInfo.disc : 0;
+        P = (cogs + sellerVCost) / (1 - gpRate - txPct - coinsPct - sAdsPct - targetPct);
+        if (!isFinite(P)) { P = 0; break; }
+      }
+      return P;
+    }
+    function solveDirectByPct() {
+      const baseDeduct = dAdsPct + dTxPct + targetPct;
+      const fixedCosts = shipping + other + cogs;
+      if (rDV === 'none') return fixedCosts / (1 - baseDeduct);
+      if (rDV === 'freeship') return (fixedCosts + shipping) / (1 - baseDeduct);
+      if (rDV === 'fixed') return (fixedCosts + v('r_dVFixed')) / (1 - baseDeduct);
+      if (rDV === 'pct') {
+        const dPct = v('r_dVPct')/100, dMax = v('r_dVMax');
+        let P = fixedCosts / (1 - baseDeduct - dPct);
+        for (let i = 0; i < 20; i++) {
+          const disc = dMax > 0 ? Math.min(P*dPct,dMax) : P*dPct;
+          P = (fixedCosts + disc) / (1 - baseDeduct);
+          if (!isFinite(P)) break;
+        }
+        return P;
+      }
+      return fixedCosts / (1 - baseDeduct);
+    }
+    var sPrice = solveShopeeByPct();
+    var dPrice = solveDirectByPct();
+    var sTargetProfit = sPrice * targetPct;
+    var dTargetProfit = dPrice * targetPct;
+  } else if (profitMode === 'baht') {
+    targetProfit = v('r_profitBaht');
+    var sPrice = solveShopeePrice(targetProfit);
+    var dPrice = solveDirectPrice(targetProfit);
+    var sTargetProfit = targetProfit;
+    var dTargetProfit = targetProfit;
+  } else { // markup
+    const markup = v('r_profitMarkup') / 100;
+    targetProfit = cogs * markup;
+    var sPrice = solveShopeePrice(targetProfit);
+    var dPrice = solveDirectPrice(targetProfit);
+    var sTargetProfit = targetProfit;
+    var dTargetProfit = targetProfit;
+  }
+
+  // Verify & compute breakdown at solved prices
+  const sV2 = getShopeeVoucherRaw(sPrice, rSV, 'r_sV');
+  const sVSellerCost = sV2.bySeller ? sV2.disc : 0;
+  const sGP = sPrice * gpRate, sTx = sPrice * txPct, sCoins = sPrice * coinsPct, sAds = sPrice * sAdsPct;
+  const sActualProfit = sPrice - sGP - sTx - sCoins - sAds - sVSellerCost - cogs;
+  const sMargin = (sActualProfit / sPrice) * 100;
+
+  const dDisc = rDV === 'fixed' ? v('r_dVFixed') :
+                rDV === 'pct'   ? (v('r_dVMax') > 0 ? Math.min(dPrice*v('r_dVPct')/100, v('r_dVMax')) : dPrice*v('r_dVPct')/100) : 0;
+  const freeshipD = rDV === 'freeship' ? shipping : 0;
+  const dAds = dPrice * dAdsPct, dTx = dPrice * dTxPct;
+  const dActualProfit = dPrice - dDisc - freeshipD - shipping - dAds - other - dTx - cogs;
+  const dMargin = (dActualProfit / dPrice) * 100;
+
+  // Fill results
+  const pill = profitMode === 'pct' ? `กำไรเป้า ${v('r_profitPct')}%` :
+               profitMode === 'baht' ? `กำไรเป้า ฿${v('r_profitBaht')}` :
+               `Markup ${v('r_profitMarkup')}% ของต้นทุน`;
+  document.getElementById('r_targetText').textContent = pill;
+  document.getElementById('r_sTypeBadge').textContent = SNAME[st];
+
+  // Shopee
+  document.getElementById('r_rs_gpPct').textContent = (gpRate*100).toFixed(2)+'%';
+  document.getElementById('r_rs_price').textContent = fmt(sPrice);
+  document.getElementById('r_rs_note').textContent  = sV2.disc > 0 ? `Voucher: ${fmt(-sV2.disc)}${sV2.bySeller?' (ร้านออก)':' (Shopee)'}` : 'ราคาที่ตั้ง';
+  document.getElementById('r_rs_gp').textContent     = fmt(-sGP);
+  document.getElementById('r_rs_tx').textContent     = fmt(-sTx);
+  document.getElementById('r_rs_coins').textContent  = sCoins>0 ? fmt(-sCoins) : '฿0.00';
+  document.getElementById('r_rs_ads').textContent    = sAds>0 ? fmt(-sAds) : '฿0.00';
+  document.getElementById('r_rs_vcost').textContent  = sVSellerCost>0 ? fmt(-sVSellerCost) : '฿0.00';
+  document.getElementById('r_rs_cogs').textContent   = fmt(-cogs);
+  document.getElementById('r_rs_profit').textContent = fmt(sActualProfit);
+  document.getElementById('r_rs_margin').textContent = sMargin.toFixed(2)+'%';
+
+  // Direct
+  document.getElementById('r_rd_price').textContent  = fmt(dPrice);
+  document.getElementById('r_rd_note').textContent   = (dDisc+freeshipD)>0 ? `ส่วนลด: ${fmt(-(dDisc+freeshipD))}` : 'ราคาที่ตั้ง';
+  document.getElementById('r_rd_ship').textContent   = fmt(-shipping);
+  document.getElementById('r_rd_ads').textContent    = dAds>0 ? fmt(-dAds) : '฿0.00';
+  document.getElementById('r_rd_other').textContent  = other>0 ? fmt(-other) : '฿0.00';
+  document.getElementById('r_rd_tx').textContent     = dTx>0 ? fmt(-dTx) : '฿0.00';
+  document.getElementById('r_rd_disc').textContent   = (dDisc+freeshipD)>0 ? fmt(-(dDisc+freeshipD)) : '฿0.00';
+  document.getElementById('r_rd_cogs').textContent   = fmt(-cogs);
+  document.getElementById('r_rd_profit').textContent = fmt(dActualProfit);
+  document.getElementById('r_rd_margin').textContent = dMargin.toFixed(2)+'%';
+
+  // Tips
+  document.getElementById('r_tip_sPrice').textContent = fmt(sPrice);
+  document.getElementById('r_tip_dPrice').textContent = fmt(dPrice);
+  const saving = sPrice - dPrice;
+  const savEl = document.getElementById('r_tip_saving');
+  if (saving > 0) { savEl.textContent = fmt(saving)+` (${((saving/sPrice)*100).toFixed(1)}%)`; savEl.style.color='var(--direct)'; }
+  else { savEl.textContent = 'ราคาขายตรงสูงกว่า'; savEl.style.color='var(--danger)'; }
+  document.getElementById('r_tip_profit').textContent = fmt(sActualProfit);
+  document.getElementById('r_tip_profitNote').textContent = `ต่อชิ้น (Shopee) | ขายตรง ${fmt(dActualProfit)}`;
+
+  document.getElementById('r_results').style.display = 'block';
+  document.getElementById('r_results').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+// Init
+fOnInput(); rOnInput();
+</script>
+</body>
+</html>
